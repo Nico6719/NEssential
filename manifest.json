@@ -1,0 +1,17 @@
+{
+    "entry": "NEssential.js",
+    "name": "NEssential",
+    "type": "lse-nodejs",
+    "version": "2.10.3",
+    "author": "Nico6719",
+    "description": "基岩版多功能基础插件 ",
+    "extraInfo": {
+        "License": "GPL-3.0",
+        "QQ": "1584573887"
+    },
+    "dependencies": [
+        {
+            "name": "legacy-script-engine-nodejs"
+        }
+    ]
+}
