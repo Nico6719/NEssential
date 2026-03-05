@@ -8,7 +8,7 @@
 
 ![](https://img.shields.io/github/v/release/Nico6719/NEssential?style=flat-square&logo=github&color=orange&label=Version)
 ![](https://img.shields.io/github/downloads/Nico6719/NEssential/total?style=flat-square&logo=github&color=33ccff&label=Downloads)
-![](https://img.shields.io/github/languages/top/Nico6719/NEssential?style=flat-square&logo=javascript&color=yellow)
+![](https://img.shields.io/github/languages/top/Nico6719/NEssential?style=flat-square&logo=Nodejs&color=green)
 
 ![](https://img.shields.io/github/stars/Nico6719/NEssential?style=flat-square&logo=github&color=yellow&label=Stars)
 ![](https://img.shields.io/github/last-commit/Nico6719/NEssential?style=flat-square&color=lightgrey)
