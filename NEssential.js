@@ -107,7 +107,7 @@ async function asyncWriteJson(filePath, data) {
     try {
         await fileWorker.send({ type: 'write', filePath, data });
     } catch (err) {
-        if (typeof logger !== 'undefined') logger.error(`异步写文件失败 ${filePath}: ${err.message}`);
+        if (typeof logger !== 'undefined') logger.error(`[NEssential] 异步写文件失败 ${filePath}: ${err.message}`);
     }
 }
 
@@ -168,7 +168,7 @@ class AsyncFileManager {
                     resolve(JSON.parse(fs.readFileSync(filePath, 'utf8') || defaultContent));
                 }
             } catch (e) {
-                logger.error(`读取文件失败: ${filePath} ${e.message}`);
+                logger.error(`[NEssential] 读取文件失败: ${filePath} ${e.message}`);
                 resolve(JSON.parse(defaultContent));
             }
         });
@@ -181,7 +181,7 @@ class AsyncFileManager {
                 fs.writeFileSync(filePath, content, 'utf8');
                 resolve(true);
             } catch (e) {
-                logger.error(`写入文件失败: ${filePath} ${e.message}`);
+                logger.error(`[NEssential] 写入文件失败: ${filePath} ${e.message}`);
                 reject(e);
             }
         });
@@ -476,12 +476,12 @@ function Motd() {
 // ══════════════════════════════════════════════════════════
 function printGradientLogo() {
     const logo = [
-        '    __   __ ______   _____   _____  ______  _   _  _______  _____          _      ',
-        '    \\ \\ / /|  ____| / ____| / ____||  ____|| \\ | ||__   __||_   _|   /\\   | |     ',
-        '     \\ V / | |__   | (___  | (___  | |__   |  \\| |   | |     | |    /  \\  | |     ',
-        '      | |  |  __|   \\___ \\  \\___ \\ |  __|  | . ` |   | |     | |   / /\\ \\ | |     ',
-        '      | |  | |____  ____) | ____) || |____ | |\\  |   | |    _| |_ / ____ \\| |____ ',
-        '      |_|  |______||_____/ |_____/ |______||_| \\_|   |_|   |_____|/_/  \\_\\|______|',
+        '    _   _  ______  _____  _____  ______  _   _  _______  _____          _      ',
+        '   | \\ | ||  ____||  ___||  ___||  ____|| \\ | ||__   __||_   _|   /\\   | |     ',
+        '   |  \\| || |__   | |___ | |___ | |__   |  \\| |   | |     | |    /  \\  | |     ',
+        '   | . ` ||  __|  |  ___||  ___||  __|  | . ` |   | |     | |   / /\\ \\ | |     ',
+        '   | |\\  || |____ | |___ | |___ | |____ | |\\  |   | |    _| |_ / ____ \\| |____ ',
+        '   |_| \\_||______||_____||_____||______||_| \\_|   |_|   |_____|/_/    \\_\\______|',
         ' ',
     ];
     const reset = '\x1b[0m';
@@ -497,7 +497,9 @@ function printGradientLogo() {
         logger.log(out + reset);
     });
     logger.log('');
+    const coreCount = require('os').cpus().length;
     randomGradientLog(`${PluginInfo} 版本:${version}, 作者：Nico6719 | Node.js 重构版`);
+    randomGradientLog(`Node.js ${process.version} | 可用核心: ${coreCount} | Worker线程池: ${coreCount} threads`);
     randomGradientLog('-'.repeat(50));
 }
 
@@ -526,7 +528,7 @@ if (__NEST_FIRST_LOAD__) {
             EconomyNotify.apply(pl);
             OfflineMoneyCache.apply(pl);
         } catch (err) {
-            logger.error(`玩家 ${pl.realName} 加入事件处理失败: ${err.message}`);
+            logger.error(`[NEssential] 玩家 ${pl.realName} 加入事件处理失败: ${err.message}`);
         }
     });
 
@@ -691,7 +693,7 @@ function showMoneyHistory(pl) {
             name: m.name,
         }));
     } catch (err) {
-        logger.error('读取模块列表失败: ' + err.message);
+        logger.error('[NEssential] 读取模块列表失败: ' + err.message);
     }
 
     let loaded = 0, failed = 0, idx = 0;
@@ -708,37 +710,33 @@ function showMoneyHistory(pl) {
             }
 
             try { initializePlugin(); } catch (e) {
-                logger.error('插件初始化失败: ' + e.message);
+                logger.error('[NEssential] 插件初始化失败: ' + e.message);
             }
 
             setTimeout(() => {
-                if (conf.get('SimpleLogOutPut') !== false) return;
-                if (failed > 0) { randomGradientLog(lang.get('init.fail') || '部分模块加载失败'); }
-                else {
-                    randomGradientLog(lang.get('init.success') || '所有模块加载成功！');
-                    randomGradientLog('-'.repeat(50));
-                    randomGradientLog(lang.get('Tip1') || '感谢使用 NEssential！');
-                    randomGradientLog(lang.get('Tip2') || '');
-                    randomGradientLog(lang.get('Tip3') || '');
-                    randomGradientLog('-'.repeat(50));
+                const total = modules.length;
+                if (failed > 0) {
+                    randomGradientLog(`模块加载完成: ${loaded}/${total} 成功, ${failed} 失败 — 请检查日志`);
+                } else {
+                    randomGradientLog(`模块加载完成: ${loaded}/${total} ✓`);
                 }
+                randomGradientLog('-'.repeat(50));
+                randomGradientLog(lang.get('Tip1') || '感谢使用 NEssential！');
+                randomGradientLog('-'.repeat(50));
             }, 100);
             return;
         }
 
         const m = modules[idx++];
         try {
-            if (conf.get('SimpleLogOutPut') === false)
-                randomGradientLog(`加载模块: ${m.name}`);
-
             const mod = require(path.resolve(m.path));
-            if (!mod) { logger.warn(`模块 ${m.name} 返回值为空`); failed++; }
+            if (!mod) { logger.warn(`[模块] ${m.name} 返回空`); failed++; }
             else if (typeof mod.init === 'function') { mod.init(); loaded++; }
             else if (typeof mod.initializeConfig === 'function') { mod.initializeConfig(); loaded++; }
             else loaded++;
         } catch (err) {
-            logger.error(`✗ 模块 ${m.name} 加载失败: ${err.message}`);
-            logger.error(err.stack || '无堆栈信息');
+            logger.error(`[模块] ✗ ${m.name} 加载失败: ${err.message}`);
+            if (conf.get('SimpleLogOutPut') === false) logger.error(err.stack || '');
             failed++;
         }
 
@@ -794,7 +792,7 @@ function initializePlugin() {
                 }
             }
         } catch (err) {
-            logger.error(`更新检查失败: ${err.message}`);
+            logger.error(`[NEssential] 更新检查失败: ${err.message}`);
         }
     }, 3000);
 }
@@ -993,7 +991,7 @@ function BackGUI(plname) {
             pl.tell(info + `§a已传送至死亡点${sel + 1}！`);
         } catch (e) {
             pl.tell(info + (lang.get('back.fail') || '传送失败'));
-            logger.error('Back System Error: ' + e);
+            logger.error('[NEssential] Back System Error: ' + e);
         }
     });
 }
@@ -1143,7 +1141,7 @@ function showTpaPrefsGui(player) {
     const tpaConfig = conf.get('tpa') || {};
     const fm = mc.newCustomForm().setTitle('TPA 设置');
     fm.addLabel('关闭此开关将立即拒绝任何 TPA 请求。');
-    fm.addSwitch('TPA 开关', prefs.acceptTpaRequests !== false);
+    fm.addSwitch('TPA 开关', prefs.acceptTpaRequests !== false ? true : false);
     fm.addDropdown('接收到请求时', ['弹窗提醒', '文字提醒'], prefs.promptType === 'text' ? 1 : 0);
     fm.addInput('请求有效时间/秒', '秒', String(prefs.requestTimeout || tpaConfig.requestTimeout || 60), '');
     player.sendForm(fm, (pl, data) => {
@@ -1283,3 +1281,148 @@ if (__NEST_FIRST_LOAD__) {
         }
     });
 }
+
+// ══════════════════════════════════════════════════════════
+// WH 维护模式命令
+// ══════════════════════════════════════════════════════════
+const whcmd = mc.newCommand('wh', '维护模式', PermType.GameMasters);
+whcmd.overload([]);
+whcmd.setCallback((cmd, ori, out) => {
+    const pl = ori.player;
+    const whCfg = conf.get('wh') || {};
+    if (!whCfg.EnableModule) return out.error(lang.get('module.no.Enabled'));
+    const newState = !stats;
+    stats = newState;
+    const msg = `维护模式已${newState ? '开启' : '关闭'}`;
+    if (pl) pl.sendText(msg); else randomGradientLog(msg);
+    if (newState) {
+        if (motdTimerId !== null) { clearInterval(motdTimerId); motdTimerId = null; }
+        mc.setMotd(whCfg.whmotdmsg || '服务器维护中，请勿进入！');
+        mc.getOnlinePlayers().forEach(p => {
+            if (!p.isSimulatedPlayer() && !p.isOP()) p.kick(whCfg.whmotdmsg || '服务器维护中');
+        });
+    } else {
+        Motd();
+    }
+});
+whcmd.setup();
+
+if (__NEST_FIRST_LOAD__) {
+    mc.listen('onPreJoin', (pl) => {
+        const whCfg = conf.get('wh') || {};
+        if (!whCfg.EnableModule) return;
+        if (pl.isSimulatedPlayer() || pl.isOP()) return;
+        if (stats) pl.kick(whCfg.whgamemsg || '服务器正在维护中，请您稍后再来！');
+    });
+}
+
+// ══════════════════════════════════════════════════════════
+// MONEYS 金币管理命令（OP）
+// ══════════════════════════════════════════════════════════
+const moneycmd = mc.newCommand('moneys', '金币管理', PermType.GameMasters);
+moneycmd.mandatory('option', ParamType.String);
+moneycmd.optional('player', ParamType.String);
+moneycmd.optional('amount', ParamType.Int);
+moneycmd.overload(['option', 'player', 'amount']);
+moneycmd.setCallback((cmd, ori, out, res) => {
+    const option = res.option;
+    if (option === 'history' || option === 'get') {
+        if (!res.player) return out.error('用法: /moneys ' + option + ' <玩家名>');
+    }
+    const targetPl = res.player ? mc.getPlayer(res.player) : null;
+    if ((option !== 'history' && option !== 'get' ? false : !targetPl) || (!targetPl && res.player)) {
+        if (res.player) return out.error(info + (lang.get('money.tr.noonline') || '玩家不在线'));
+    }
+    const coinName = economyCfg.coinName;
+
+    switch (option) {
+        case 'set':
+            if (!targetPl) return out.error('用法: /moneys set <玩家> <数量>');
+            if (res.amount == null) return out.error('请指定数量');
+            Economy.execute(targetPl, 'set', res.amount);
+            out.success(`已设置 ${targetPl.realName} 的${coinName}为 ${res.amount}`);
+            break;
+        case 'add':
+            if (!targetPl) return out.error('用法: /moneys add <玩家> <数量>');
+            if (res.amount == null) return out.error('请指定数量');
+            Economy.execute(targetPl, 'add', res.amount);
+            out.success(`已给 ${targetPl.realName} 增加 ${res.amount} ${coinName}`);
+            break;
+        case 'del':
+        case 'reduce':
+            if (!targetPl) return out.error('用法: /moneys del <玩家> <数量>');
+            if (res.amount == null) return out.error('请指定数量');
+            Economy.execute(targetPl, 'reduce', res.amount);
+            out.success(`已扣除 ${targetPl.realName} 的 ${res.amount} ${coinName}`);
+            break;
+        case 'get':
+            if (!targetPl) return out.error('用法: /moneys get <玩家>');
+            out.success(`${targetPl.realName} 的${coinName}：${Economy.get(targetPl)}`);
+            break;
+        case 'history': {
+            if (!targetPl) return out.error('用法: /moneys history <玩家>');
+            const hist = MoneyHistory.get(targetPl.realName) || {};
+            const entries = Object.entries(hist).slice(-20);
+            if (!entries.length) { out.success('暂无记录'); break; }
+            out.success(`${targetPl.realName} 的${coinName}历史:`);
+            entries.forEach(([t, v]) => out.success(`  ${t}: ${v}`));
+            break;
+        }
+        default:
+            out.error('可用操作: set / add / del / get / history');
+    }
+});
+moneycmd.setup();
+
+// ══════════════════════════════════════════════════════════
+// CRASH 崩溃客户端（OP）
+// ══════════════════════════════════════════════════════════
+mc.regPlayerCmd('crash', '§c使玩家客户端崩溃', (player) => {
+    if (!conf.get('CrashModuleEnabled')) { player.tell(info + (lang.get('module.no.Enabled') || '模块未启用')); return; }
+    if (!player.isOP()) { player.tell(info + (lang.get('player.not.op') || '权限不足')); return; }
+    const players = mc.getOnlinePlayers();
+    const fm = mc.newCustomForm().setTitle('Crash 玩家客户端');
+    fm.addDropdown('选择目标玩家', players.map(p => p.name));
+    player.sendForm(fm, (pl, data) => {
+        if (data == null) return;
+        players[data[0]]?.crash();
+        pl.tell(info + '已发送崩溃数据包');
+    });
+});
+
+// ══════════════════════════════════════════════════════════
+// RTP / RTPRESET 随机传送命令
+// ══════════════════════════════════════════════════════════
+const asyncRtpCmd = mc.newCommand('rtp', '随机传送', PermType.Any);
+asyncRtpCmd.overload([]);
+asyncRtpCmd.setCallback(async (cmd, ori, out) => {
+    const pl = ori.player;
+    if (!pl) return out.error(lang.get('warp.only.player'));
+    if (!conf.get('RTP')?.EnabledModule) { pl.tell(info + (lang.get('module.no.Enabled') || '模块未启用')); return; }
+    try {
+        if (globalThis.RadomTeleportSystem?.performRTPAsync) {
+            await globalThis.RadomTeleportSystem.performRTPAsync(pl);
+        } else {
+            pl.tell(info + '§cRTP模块未加载');
+        }
+    } catch (e) {
+        logger.error('[NEssential] RTP 执行失败: ' + e.message);
+        pl.tell(info + '§c传送失败，请稍后重试');
+    }
+});
+asyncRtpCmd.setup();
+
+const rtpResetCmd = mc.newCommand('rtpreset', '重置RTP冷却', PermType.GameMasters);
+rtpResetCmd.mandatory('player', ParamType.Player);
+rtpResetCmd.overload(['player']);
+rtpResetCmd.setCallback((cmd, ori, out, res) => {
+    const name = res.player?.name || res.player;
+    if (!name) return out.error('请指定玩家');
+    if (globalThis.RadomTeleportSystem?.cooltime) {
+        globalThis.RadomTeleportSystem.cooltime.set(name, 0);
+        out.success(`已重置 ${name} 的RTP冷却`);
+    } else {
+        out.error('RTP模块未加载');
+    }
+});
+rtpResetCmd.setup();
