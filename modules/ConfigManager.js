@@ -197,10 +197,10 @@ class ConfigManager {
         let savedVersion = conf.get("Version") || 0;
         
         if (savedVersion < this.currentVersion) {
-            randomGradientLog(`检测到配置版本更新: ${savedVersion} -> ${this.currentVersion}, 开始迁移配置...`);
+            logger.info(`[Config] 版本迁移 ${savedVersion} → ${this.currentVersion}`);
             this.migrateConfig(savedVersion);
             conf.set("Version", this.currentVersion);
-            randomGradientLog("配置迁移完成!");
+            logger.info("[Config] 迁移完成");
         }
         
         // 确保所有配置项都存在
@@ -225,7 +225,7 @@ class ConfigManager {
             );
             //randomGradientLog("模块列表配置文件初始化成功");
         } catch (error) {
-            logger.error(`模块列表配置文件初始化失败: ${error.message}`);
+            logger.error(`[NEssential] 模块列表配置文件初始化失败: ${error.message}`);
         }
     }
 
@@ -239,7 +239,7 @@ class ConfigManager {
             // 获取目录中的所有 .js 文件
             const files = File.getFilesList(modulesDir);
             if (!files || files.length === 0) {
-                logger.warn("未找到任何模块文件");
+                logger.warn("[NEssential] 未找到任何模块文件");
                 return;
             }
 
@@ -273,7 +273,7 @@ class ConfigManager {
                         "name": moduleName
                     };
                     updatedModules.unshift(newModule);
-                    randomGradientLog(`发现新模块: ${fileName} (${moduleName})`);
+                    logger.debug?.(`[Config] 新模块: ${fileName}`);
                     addedCount++;
                 }
             });
@@ -290,13 +290,13 @@ class ConfigManager {
             // 更新配置文件
             if (addedCount > 0 || removedCount > 0) {
                 this.moduleListConfig.set("modules", updatedModules);
-                randomGradientLog(`模块同步完成: 新增 ${addedCount} 个, 删除 ${removedCount} 个`);
+                if (addedCount + removedCount > 0) logger.info(`[Config] 模块列表同步: +${addedCount} -${removedCount}`);
             } else {
                 //randomGradientLog("模块列表无变化");
             }
 
         } catch (error) {
-            logger.error(`模块同步失败: ${error.message}`);
+            logger.error(`[NEssential] 模块同步失败: ${error.message}`);
         }
     }
 
@@ -344,7 +344,7 @@ class ConfigManager {
         
         // 检查模块是否已存在
         if (modules.some(mod => mod.path === path)) {
-            logger.warn(`模块已存在: ${path}`);
+            logger.warn(`[NEssential] 模块已存在: ${path}`);
             return false;
         }
 
@@ -363,7 +363,7 @@ class ConfigManager {
         let filtered = modules.filter(mod => mod.path !== path);
         
         if (filtered.length === modules.length) {
-            logger.warn(`模块不存在: ${path}`);
+            logger.warn(`[NEssential] 模块不存在: ${path}`);
             return false;
         }
 
@@ -400,7 +400,7 @@ class ConfigManager {
                 try {
                     migration.handler();
                 } catch (error) {
-                    logger.error(`迁移到v${migration.version}失败: ${error.message}`);
+                    logger.error(`[NEssential] 迁移到v${migration.version}失败: ${error.message}`);
                 }
             }
         });
@@ -433,7 +433,7 @@ class ConfigManager {
     
 
 migrateTo288() {
-        randomGradientLog("迁移到版本2.8.8：整合Economy配置块...");
+        logger.info("[Config] 配置迁移 → v2.8.8");
 
         // 1. 读取所有旧字段
         const oldLLMoney = conf.get("LLMoney");
@@ -471,7 +471,7 @@ migrateTo288() {
     }
 
 migrateTo289() {
-        randomGradientLog("更新配置版本到289");
+        // 版本号静默写入
 
         // 新增模块: I18n, PVP, Fcam, Notice
         const newFiles = [
@@ -483,7 +483,7 @@ migrateTo289() {
         if (!this.isValidObject(updateConfig)) {
             // Update 块完全不存在，使用默认值（含新模块）
             conf.set("Update", this.configDefaults.Update);
-            randomGradientLog("Update 配置不存在，已写入默认配置（含 PVP / Fcam / Notice）");
+            logger.info("[Config] 写入默认配置");
             return;
         }
 
@@ -541,7 +541,7 @@ migrateTo289() {
             this.moduleListConfig.set("modules", reordered);
             randomGradientLog("modulelist.json 已确保 I18n.js 排在第一位");
         } catch (error) {
-            logger.error(`调整 modulelist.json 顺序失败: ${error.message}`);
+            logger.error(`[NEssential] 调整 modulelist.json 顺序失败: ${error.message}`);
         }
     }
 
@@ -551,7 +551,7 @@ migrateTo289() {
     setIfMissing(key, defaultValue) {
         if (conf.get(key) === undefined) {
             conf.set(key, defaultValue);
-            randomGradientLog(`添加缺失配置: ${key} = ${JSON.stringify(defaultValue)}`);
+            // 缺失配置静默补全
         }
     }
 
@@ -560,7 +560,7 @@ migrateTo289() {
         
         if (!this.isValidObject(currentConfig)) {
             conf.set(key, defaultConfig);
-            randomGradientLog(`创建对象配置: ${key}`);
+            // 对象配置静默创建
             return;
         }
 

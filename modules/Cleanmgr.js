@@ -444,7 +444,7 @@ var CleanMgr = (function () {
             if (act === "tps") {
                 logger.info(t("messages.tps_info", cur.toFixed(2)));
             } else if (act === "status") {
-                logger.info("状态: " + state.phase + (state.lowTpsRetryTime > Date.now() ? " (TPS清理长冷却中)" : ""));
+                logger.info("[NEssential] 状态: " + state.phase + (state.lowTpsRetryTime > Date.now() ? " (TPS清理长冷却中)" : ""));
             } else if (act === "cancel") {
                 if (state.phase === "scheduled") {
                     state.scheduledTimeouts.forEach(clearTimeout);

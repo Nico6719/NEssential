@@ -37,8 +37,11 @@ function initNoticeModule() {
     // ── 注册 /noticeset 命令（OP 编辑公告）──────────────
     _registerNoticeSetCmd();
 
-    // ── 监听玩家进服，自动弹出公告 ───────────────────────
-    _registerJoinListener();
+    // ── 监听玩家进服，自动弹出公告（仅注册一次）────────
+    if (globalThis.__NEST_FIRST_LOAD__ !== false && !globalThis.__noticeListenerRegistered__) {
+        globalThis.__noticeListenerRegistered__ = true;
+        _registerJoinListener();
+    }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -50,8 +53,9 @@ function _checkNoticeUpdateFlag() {
     const noticeCfg = conf.get("Notice");
     if (!noticeCfg || noticeCfg.IsUpdate != 1) return;
 
-    File.delete(_getNoticeSettingFile());
-    randomGradientLog(lang.get("notice.is.changed"));
+    const f = _getNoticeSettingFile();
+    try { if (fs.existsSync(f)) fs.unlinkSync(f); } catch(e) {}
+    randomGradientLog(lang.get("notice.is.changed") || "公告已更新，已清空阅读记录" || '公告已更新，已清空玩家阅读记录');
     noticeCfg.IsUpdate = false;
     conf.set("Notice", noticeCfg);
 }
@@ -73,7 +77,8 @@ function _registerNoticeCmd() {
         // 初始化玩家偏好（默认 0 = 每次进服都弹）
         noticeconf.init(String(pl.realName), 0);
 
-        // 若公告文件不存在，自动创建
+        // 若公告文件不存在，自动创建（先确保目录存在）
+        if (!fs.existsSync(NOTICE_DIR)) fs.mkdirSync(NOTICE_DIR, { recursive: true });
         if (!fs.existsSync(NOTICE_FILE)) {
             fs.writeFileSync(NOTICE_FILE, " 这是一个公告", 'utf8');
         }
@@ -82,15 +87,15 @@ function _registerNoticeCmd() {
         const lines = rawContent.split("\n");
 
         const fm = mc.newCustomForm()
-            .setTitle(info + lang.get("notice.for.server"));
+            .setTitle(info + lang.get("notice.for.server") || "服务器公告");
 
         lines.forEach(line => {
             if (line.trim() !== "") fm.addLabel(line);
         });
 
         fm.addSwitch(
-            lang.get("notice.dont.showagain"),
-            noticeconf.get(String(pl.realName)) != 0
+            lang.get("notice.dont.showagain") || "不再提示",
+            noticeconf.get(String(pl.realName)) !== 0 && noticeconf.get(String(pl.realName)) !== false
         );
 
         pl.sendForm(fm, (plr, data) => {
@@ -130,7 +135,7 @@ function _registerNoticeSetCmd() {
         // 递归多行编辑表单
         const sendNoticeForm = (player, lines) => {
             const form = mc.newCustomForm()
-                .setTitle(info + lang.get("notice.editor"));
+                .setTitle(info + lang.get("notice.editor") || "公告编辑器");
 
             lines.forEach((line, index) => {
                 form.addInput(`§a行 ${index + 1}`, "", line || "");
@@ -140,7 +145,7 @@ function _registerNoticeSetCmd() {
 
             player.sendForm(form, (plr, data) => {
                 if (data === null || data === undefined) {
-                    plr.tell(info + lang.get("notice.exit.edit"));
+                    plr.tell(info + lang.get("notice.exit.edit") || "已退出编辑");
                     return;
                 }
 
@@ -151,24 +156,25 @@ function _registerNoticeSetCmd() {
                     case 0: { // 完成编辑
                         const newContent = contentLines.join("\n");
                         if (newContent === currentNotice) {
-                            plr.tell(info + lang.get("notice.no.change"));
+                            plr.tell(info + lang.get("notice.no.change") || "公告无变化");
                             return;
                         }
                         // 备份旧公告
                         try {
                             if (fs.existsSync(NOTICE_FILE)) {
-                                if (fs.existsSync(NOTICE_BAK)) file.delete(NOTICE_BAK);
-                                file.rename(NOTICE_FILE, NOTICE_BAK);
-                                plr.tell(info + lang.get("notice.backupto"));
+                                if (fs.existsSync(NOTICE_BAK)) fs.unlinkSync(NOTICE_BAK);
+                                fs.renameSync(NOTICE_FILE, NOTICE_BAK);
+                                plr.tell(info + (lang.get("notice.backupto") || '旧公告已备份'));
                             }
                         } catch (e) {
-                            plr.tell(info + "§c备份失败: " + e);
+                            plr.tell(info + "§c备份失败: " + e.message);
                         }
                         // 保存新公告并重置阅读记录
+                        if (!fs.existsSync(NOTICE_DIR)) fs.mkdirSync(NOTICE_DIR, { recursive: true });
                         fs.writeFileSync(NOTICE_FILE, newContent, 'utf8');
-                        plr.tell(info + lang.get("notice.save.ok"));
-                        File.delete(_getNoticeSettingFile());
-                        randomGradientLog(lang.get("notice.is.changed"));
+                        plr.tell(info + lang.get("notice.save.ok") || "公告已保存");
+                        try { const _f = _getNoticeSettingFile(); if (fs.existsSync(_f)) fs.unlinkSync(_f); } catch(e) {}
+                        randomGradientLog(lang.get("notice.is.changed") || "公告已更新，已清空阅读记录");
                         // 重置更新标记
                         const noticeObj = conf.get("Notice");
                         noticeObj.IsUpdate = false;
@@ -185,7 +191,7 @@ function _registerNoticeSetCmd() {
                             contentLines.pop();
                             sendNoticeForm(plr, contentLines);
                         } else {
-                            plr.tell(info + lang.get("notice.cannot.del"));
+                            plr.tell(info + lang.get("notice.cannot.del") || "至少保留一行");
                             sendNoticeForm(plr, contentLines);
                         }
                         break;

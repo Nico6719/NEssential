@@ -52,7 +52,7 @@ function initFcamModule() {
                 try { spl.simulateDisconnect(); }
                 catch (e) { logger.error(lang.get("fc.error.log3") + e); }
             } else {
-                logger.warn(`FCAM: 未找到模拟玩家 ${plname}_sp，跳过断开`);
+                logger.warn(`[NEssential] FCAM: 未找到模拟玩家 ${plname}_sp，跳过断开`);
             }
 
             out.success(info + lang.get("fc.success.quit"));
@@ -134,7 +134,7 @@ function initFcamModule() {
                     color
                 );
             } catch (e) {
-                logger.error("FCAM: 更新 BossBar 失败: " + e);
+                logger.error("[NEssential] FCAM: 更新 BossBar 失败: " + e);
                 cleanupFcamBossBar(plname);
             }
         }, 1000);

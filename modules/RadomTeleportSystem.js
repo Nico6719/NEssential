@@ -448,7 +448,7 @@ class RadomTeleportSystem {
                 }
                 player.sendText(info + `§a已退还 ${cost}${lang.get("CoinName")}`);
             } catch (e) {
-                logger.error(`退还费用失败: ${e.message}`);
+                logger.error(`[NEssential] 退还费用失败: ${e.message}`);
             }
         }
         

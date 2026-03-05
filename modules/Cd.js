@@ -303,7 +303,7 @@ class MenuDataManager {
             fileName = fileName + ".json";
         }
         if (fs.existsSync(MENU_CONFIG.menusPath + fileName)) {
-            File.delete(MENU_CONFIG.menusPath + fileName);
+            fs.unlinkSync(MENU_CONFIG.menusPath + fileName);
         }
     }
 
@@ -316,9 +316,7 @@ class MenuDataManager {
             menuData.buttons.splice(index, 0, button);
         }
         
-        File.writeTo(
-            MENU_CONFIG.menusPath + fileName,
-            JSON.stringify(menuData, null, 4)
+        fs.writeFileSync(MENU_CONFIG.menusPath + fileName, JSON.stringify(menuData, null, 4, 'utf8')
         );
     }
 
@@ -327,9 +325,7 @@ class MenuDataManager {
         
         if (buttonIndex >= 0 && buttonIndex < menuData.buttons.length) {
             menuData.buttons.splice(buttonIndex, 1);
-            File.writeTo(
-                MENU_CONFIG.menusPath + fileName,
-                JSON.stringify(menuData, null, 4)
+            fs.writeFileSync(MENU_CONFIG.menusPath + fileName, JSON.stringify(menuData, null, 4, 'utf8')
             );
             return true;
         }
@@ -341,9 +337,7 @@ class MenuDataManager {
         
         if (buttonIndex >= 0 && buttonIndex < menuData.buttons.length) {
             menuData.buttons[buttonIndex] = newButton;
-            File.writeTo(
-                MENU_CONFIG.menusPath + fileName,
-                JSON.stringify(menuData, null, 4)
+            fs.writeFileSync(MENU_CONFIG.menusPath + fileName, JSON.stringify(menuData, null, 4, 'utf8')
             );
             return true;
         }
@@ -682,7 +676,7 @@ class MenuAdminHandler {
         form.setTitle("添加菜单按钮");
         form.addDropdown("选择菜单文件", fileOptions, formData.fileIndex || 0);
         form.addDropdown("选择按钮类型", buttonTypes, formData.buttonType || 0);
-        form.addSwitch("是否开启按钮贴图", formData.enableImage || false);
+        form.addSwitch("是否开启按钮贴图", !!formData.enableImage);
         form.addInput("[选填]按钮贴图地址", "textures/items/apple", formData.imagePath || "");
         form.addInput("[必填]按钮标题", "例如: 说你好", formData.buttonText || "");
         form.addInput("[必填]按钮执行的结果", "例如: say @a 你好", formData.command || "");
@@ -1035,7 +1029,7 @@ class MenuAdminHandler {
         var form = mc.newCustomForm();
         form.setTitle("修改按钮: " + button.text);
         form.addDropdown("按钮类型", buttonTypes, currentTypeIndex);
-        form.addSwitch("是否开启按钮贴图", button.images || false);
+        form.addSwitch("是否开启按钮贴图", !!(button.images));
         form.addInput("按钮贴图地址", "textures/items/apple", button.image || "");
         form.addInput("按钮标题", "例如: 说你好", button.text);
         form.addInput("按钮执行的结果", "例如: say @a 你好", button.command);

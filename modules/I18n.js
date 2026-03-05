@@ -228,7 +228,44 @@ const defaultLangContent = {
     "rp.help.detail.title": "详情",
     "rp.help.history.btn": "历史记录",
     "rp.help.types.btn": "红包类型说明",
-
+    "notice.dont.showagain": "不再显示此公告",
+    "notice.title": "服务器公告",
+    "notice.unread": "有新公告未读",
+    "notice.read": "已读",
+    "notice.set.title": "公告设置",
+    "notice.set.content": "公告内容",
+    "notice.set.success": "公告已更新",
+    "tpa.to.here": "传送到你这里",
+    "tpa.to.he.she": "你去TA那里",
+    "tpa.tp.fail.noonline": "传送失败，玩家已离线",
+    "tpa.tp.okey": "传送成功！",
+    "tpa.no.request": "没有待处理的传送请求",
+    "tpa.d.request": "对方已拒绝传送请求",
+    "tpa.d.request.you": "你已拒绝传送请求",
+    "tpa.player.offline": "玩家已离线，请求已取消",
+        "notice.for.server": "服务器公告",
+    "notice.editor": "公告编辑器",
+    "notice.exit.edit": "已退出编辑",
+    "notice.no.change": "公告内容无变化，未保存",
+    "notice.save.ok": "公告已保存！",
+    "notice.cannot.del": "至少保留一行内容",
+    "notice.backupto": "旧公告已备份",
+        // Fcam
+    "fc.timeout": "灵魂出窍超时，已自动退出",
+    "fc.error.log4": "[NEssential] [Fcam] 退出灵魂出窍时出错: ",
+    "fc.error.log5": "[NEssential] [Fcam] 传送失败: ",
+    // RTP
+    "rtp.search.chunks": "正在搜索安全落点...",
+    "rtp.loading.chunks1": "正在加载区块 (1/3)...",
+    "rtp.loading.chunks2": "正在加载区块 (2/3)...",
+    "rtp.loading.chunks3": "正在加载区块 (3/3)...",
+    "rtp.tp.success2": "随机传送成功！",
+    // PVP
+    "your.pvp.isoff": "§c您的PVP已关闭，无法攻击其他玩家",
+    "then.pvp.isoff": "§c对方的PVP已关闭，无法攻击",
+    // Money GUI
+    "money.gui.useplayer": "使用玩家菜单",
+    
     "Tip1":"感谢使用 NEssential！",
     "Tip2":"如有问题请加 QQ: 1584573887",
     "Tip3":"开源协议: GPL-3.0",
@@ -270,7 +307,7 @@ function mergeLangFiles() {
         if (typeof globalThis.randomGradientLog === 'function')
             globalThis.randomGradientLog('语言文件已加载完成');
     } catch (err) {
-        if (typeof logger !== 'undefined') logger.error(`I18n 加载失败: ${err.message}`);
+        if (typeof logger !== 'undefined') logger.error(`[NEssential] I18n 加载失败: ${err.message}`);
     }
 }
 
